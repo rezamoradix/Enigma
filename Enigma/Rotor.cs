@@ -6,29 +6,26 @@ namespace Enigma
 {
     class Rotor
     {
-        private string randomizedAlphabet;
-
-        public string RandomizedAlphabet { get { return randomizedAlphabet; } }
+        public string RandomizedAlphabet { get; private set; }
 
         public Rotor(string randAlpha)
         {
-            randomizedAlphabet = randAlpha;
+            RandomizedAlphabet = randAlpha;
         }
 
         public char GetCipher(char inputCharacter)
         {
-            return randomizedAlphabet[Program.Alphabet.IndexOf(inputCharacter)];
+            return RandomizedAlphabet[Program.Alphabet.IndexOf(inputCharacter)];
         }
 
         public char GetAlpha(char inputCharacter)
         {
-            return Program.Alphabet[randomizedAlphabet.IndexOf(inputCharacter)];
+            return Program.Alphabet[RandomizedAlphabet.IndexOf(inputCharacter)];
         }
-
 
         public void Step()
         {
-            randomizedAlphabet = randomizedAlphabet.Substring(1) + randomizedAlphabet[0];
+            RandomizedAlphabet = RandomizedAlphabet.Substring(1) + RandomizedAlphabet[0];
         }
     }
 }

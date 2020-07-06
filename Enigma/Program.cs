@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 
 namespace Enigma
@@ -9,7 +10,10 @@ namespace Enigma
     class Program
     {
         // ~ is space
-        public static string Alphabet = "abcdefghijklmnopqrstuvwxyz~.,;:/|\\'\"-+=*!?@#$%^&<>()[]{}_0123456789";
+        // if you want to add double quotation, d-quotations in input should be \"
+        // see this: https://weblogs.asp.net/jongalloway/_5B002E00_NET-Gotcha_5D00_-Commandline-args-ending-in-_5C002200_-are-subject-to-CommandLineToArgvW-whackiness
+
+        public static string Alphabet = "abcdefghijklmnopqrstuvwxyz~0123456789.,;:?!@#$%^&*()[]{}<>";
         public static int rotorsCount = 5;
         static string rotorsPath = Path.Combine(Directory.GetCurrentDirectory(), "rotors.json");
         static AlphabetRandomizer randomizer;
@@ -18,22 +22,24 @@ namespace Enigma
         {
             if (args.Length == 0)
             {
-                Console.WriteLine("usage: enigma <TEXT_HERE>");
-                Console.WriteLine("usage: enigma -- space <TEXT_HERE>                                   showing spaces (for decrypting)");
-                Console.WriteLine($"usage: enigma -- <R1_STEP>:<R2_STEP>:<R3_STEP>:... <TEXT_HERE>      apply stepping settings for rotors");
-                Console.WriteLine("usage: enigma -- generate                                            generate new randomized alphabet collection for rotors");
-                Console.WriteLine("usage: enigma -- rotors <ROTORS_COUNT>                               choose number of rotors and regenerate alphabet");
-                Console.WriteLine("");
-                Console.WriteLine("Input is empty.");
+                Console.WriteLine("Enigma version 0.2; author: https://github.com/rezamoradix \n");
+                Console.WriteLine($"Alphabet: {Alphabet}\n");
+                Console.WriteLine("Usage:");
+                Console.WriteLine("     enigma <TEXT_HERE>");
+                Console.WriteLine("     enigma -- space <TEXT_HERE>                                   showing spaces (for decrypting)");
+                Console.WriteLine("     enigma -- <R1_STEP>:<R2_STEP>:<R3_STEP>:... <TEXT_HERE>       apply stepping settings for rotors");
+                Console.WriteLine("     enigma -- generate                                            generate new randomized alphabet collection for rotors");
+                Console.WriteLine("     enigma -- rotors <ROTORS_COUNT>                               choose number of rotors and regenerate alphabet");
+                Console.WriteLine("\nInput is empty.");
                 return;
             }
-
             string[] collection = ReadGeneratedAlphabetCollection();
             if (collection != null)
             {
                 randomizer = new AlphabetRandomizer(collection);
                 rotorsCount = randomizer.GetRotorsCount();
-            } else
+            }
+            else
             {
                 randomizer = new AlphabetRandomizer(GenerateRandomizedAlphabetCollections());
             }
@@ -105,24 +111,26 @@ namespace Enigma
                 }
             }
 
-            string inputText = string.Join("", args[0].Replace("~", "").Replace(' ', '~').Where(x => Alphabet.Contains(x)).ToArray());
+            string inputText = string.Join("", args[0].ToLower().Replace(' ', '~').Where(x => Alphabet.Contains(x)).ToArray());
 
             string cipher = "";
             int counter = 0;
+            char c = '.'; 
             foreach (var character in inputText)
             {
-                char c = '.'; 
                 counter++;
                 for (int i = 0; i < rotorsCount; i++)
                 {
                     if (counter % (Math.Pow(Alphabet.Length, i)) == 0)
+                    {
                         rotors[i].Step();
+                    }
+
                     c = rotors[i].GetCipher(i == 0 ? character : c);
                 }
 
                 // Reflect
                 c = Reflector.Reflect(c);
-
                 for (int i = rotorsCount - 1; i >= 0; i--)
                 {
                     c = rotors[i].GetAlpha(c);
